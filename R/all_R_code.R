@@ -482,26 +482,7 @@ dim(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==2),])
 dim(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==3),])
 dim(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==4),])
 
-MapSample2CELfile<-function(data.ER.PR.sample.info,data.set1.normalized,sample_type){
 
-cat(dim(data.ER.PR.sample.info),dim(data.set1.normalized),sample_type,"\n")
-
-num.sample1=length(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==1),][,1])
-cel_file_index_4_sample<-array()
-
-for(i in 1:num.sample1) {
-tmp<-grep(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==sample_type),][i,1],colnames(data.set1.normalized))
-cel_file_index_4_sample<-c(cel_file_index_4_sample,tmp)
-}
-cel_file_index_4_sample<-cel_file_index_4_sample[-1]
-
-colnames(data.set1.normalized)[cel_file_index_4_sample]
-
-re<-data.set1.normalized[,cel_file_index_4_sample]
-
-return(re)
-
-}
 
 #ER-PR-
 ER.PR.sample1.from.set1<-MapSample2CELfile(data.ER.PR.sample.info,data.set1.normalized,1)
@@ -1446,12 +1427,7 @@ biocLite("Homo.sapiens")
 library("Homo.sapiens")
 
 # Read in the CEL files in the directory, then normalize the data
-Function2ReadCEL_or_cel<-function(input_dir){
-   affybatch <- read.celfiles(list.celfiles(setwd(input_dir)))
-   eset <- rma(affybatch)
-   re<-list(aff_data=affybatch,ed_norma=eset)
-   return(re)
- }
+
 Re.set1<-Function2ReadCEL_or_cel("/media/H_driver/2015/Sophia/FTE-HGSC Gene Expression/Microarray_Set1_FTE_HGSC_LCM")
 Re.set2<-Function2ReadCEL_or_cel("/media/H_driver/2015/Sophia/FTE-HGSC Gene Expression/Microarray_Set2_corrected")
 
@@ -1665,20 +1641,7 @@ TopTableSt34.gene.frma<-topTable(fit2.st134.frma,coef=1,n=60000)
 TopTableSt41.gene.frma<-topTable(fit2.st134.frma,coef=2,n=60000)
 
 
-OutPut2HtmlTable<-function(TopTableSt41.gene.frma,out_dir,out_file_name,out_title){
 
-hgnc.gene.symbol.ENTREZID<-select(Homo.sapiens, keys=rownames(TopTableSt41.gene.frma),columns=c("SYMBOL","ENTREZID"), keytype="SYMBOL")
-
-TopTableSt41.gene.frma.2<-data.frame(rownames(TopTableSt41.gene.frma),TopTableSt41.gene.frma)
-colnames(TopTableSt41.gene.frma.2)[1]="SYMBOL"
-
-TopTableSt41.gene.frma.4<-merge(TopTableSt41.gene.frma.2,hgnc.gene.symbol.ENTREZID,by="SYMBOL",sort=FALSE)
-htmlpage(list(TopTableSt41.gene.frma.4$ENTREZID),filename=paste0(out_dir,out_file_name),
-         title=out_title,
-         othernames=TopTableSt41.gene.frma.4[,-8],
-         table.head=c("ENTREZID",colnames(TopTableSt41.gene.frma.3[,-8])),
-         table.center=TRUE, digits=6)
-}
 
 OutPut2HtmlTable(TopTableSt41.gene.frma,"/media/H_driver/2015/Sophia/","St41-5-frma.html","st4-vs-st1_HTML_report")
 OutPut2HtmlTable(TopTableSt34.gene.frma,"/media/H_driver/2015/Sophia/","St34-5-frma.html","st3-vs-st4_HTML_report")
@@ -1763,14 +1726,6 @@ data.set2.cancer.GSM.cel.mapping<-data.set2.sample.info[which(data.set2.sample.i
 data.set2.cancer.GSM.cel.mapping.2<-data.set2.cancer.GSM.cel.mapping[,c(1,8)]
 data.set2.cancer.GSM.part<-as.character(data.set2.cancer.GSM.cel.mapping.2[which(as.character(data.set2.cancer.GSM.cel.mapping.2[,1])!=""),1])
 data.set2.cancer.GSM.part.cel.name<-as.character(data.set2.cancer.GSM.cel.mapping.2[which(as.character(data.set2.cancer.GSM.cel.mapping.2[,1])!=""),2])
-
-ReformatCelName<-function(data.set2.cancer.GSM.cel.mapping.3){
-data.set2.cancer.GSM.cel.mapping.3.2<-gsub(".cel","",data.set2.cancer.GSM.cel.mapping.3)
-data.set2.cancer.GSM.cel.mapping.3.2.2<-gsub(".CEL","",as.character(data.set2.cancer.GSM.cel.mapping.3.2))
-data.set2.cancer.GSM.cel.mapping.3.2.2.2<-gsub("-","_",as.character(data.set2.cancer.GSM.cel.mapping.3.2.2))
-data.set2.cancer.GSM.cel.mapping.4<-cbind(data.set2.cancer.GSM.cel.mapping.3,data.set2.cancer.GSM.cel.mapping.3.2.2.2,sapply(strsplit(data.set2.cancer.GSM.cel.mapping.3.2.2.2,"_"),"[[",1))
-return(data.set2.cancer.GSM.cel.mapping.4)
-}
 
 data.set2.cancer.GSM.cel.mapping.combine<-cbind(data.set2.cancer.GSM.part,ReformatCelName(data.set2.cancer.GSM.part.cel.name))
 GSM.based.cel.index<-which(original.cel.file.names.key[,3] %in% data.set2.cancer.GSM.cel.mapping.combine[,1])
