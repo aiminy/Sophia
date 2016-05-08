@@ -1811,20 +1811,7 @@ data.set123.frma.cancer<-data.set123.frma[,samp.frma.cancer.index]
 ed.set123.frma.cancer<-ed.set123.frma[,samp.frma.cancer.index]
 dim(ed.set123.frma.cancer)
 
-GenerateFiles4GSEA<-function(ed.set123.frma.cancer,out_dir,out_file_name,subtypeA,subtypeB){
 
-index.st4<-which(colnames(ed.set123.frma.cancer) %in% cel.file.name.key.set.symbol.st134[which(cel.file.name.key.set.symbol.st134[,5]==subtypeA),2])
-index.st1<-which(colnames(ed.set123.frma.cancer) %in% cel.file.name.key.set.symbol.st134[which(cel.file.name.key.set.symbol.st134[,5]==subtypeB),2])
-
-ed.set123.frma.cancer.st41<-cbind(ed.set123.frma.cancer[,index.st4],ed.set123.frma.cancer[,index.st1])
-cat(subtypeA,"\t",length(index.st4),subtypeB,"\t",length(index.st1),"\t",dim(ed.set123.frma.cancer.st41),"\n")
-
-ed.set123.frma.cancer.st41.reformat<-cbind(rownames(ed.set123.frma.cancer.st41),rep("NA",dim(ed.set123.frma.cancer.st41)[1]),ed.set123.frma.cancer.st41)
-colnames(ed.set123.frma.cancer.st41.reformat)[c(1,2)]=c("NAME","Description")
-
-write.table(ed.set123.frma.cancer.st41.reformat,file = paste0(out_dir,out_file_name),quote = FALSE, sep ="\t",row.names = FALSE,col.names = TRUE)
-
-}
 
 GenerateFiles4GSEA(ed.set123.frma.cancer,"/media/H_driver/2015/Sophia/Results/","St41-4_GSEA.xls","st4","st1")
 GenerateFiles4GSEA(ed.set123.frma.cancer,"/media/H_driver/2015/Sophia/Results/","St34-4_GSEA.xls","st3","st4")
