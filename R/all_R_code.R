@@ -1811,8 +1811,6 @@ data.set123.frma.cancer<-data.set123.frma[,samp.frma.cancer.index]
 ed.set123.frma.cancer<-ed.set123.frma[,samp.frma.cancer.index]
 dim(ed.set123.frma.cancer)
 
-
-
 GenerateFiles4GSEA(ed.set123.frma.cancer,"/media/H_driver/2015/Sophia/Results/","St41-4_GSEA.xls","st4","st1")
 GenerateFiles4GSEA(ed.set123.frma.cancer,"/media/H_driver/2015/Sophia/Results/","St34-4_GSEA.xls","st3","st4")
 
@@ -1852,45 +1850,10 @@ fit2.st134.frma  <- eBayes(fit2.st134.frma)
 TopTableSt34.gene.frma<-topTable(fit2.st134.frma,coef=1,n=dim(data.byGSym.2)[1])
 TopTableSt41.gene.frma<-topTable(fit2.st134.frma,coef=2,n=dim(data.byGSym.2)[1])
 
-OutPut2HtmlTable<-function(TopTableSt41.gene.frma,out_dir,out_file_name,out_title){
-
-hgnc.gene.symbol.ENTREZID<-select(Homo.sapiens, keys=rownames(TopTableSt41.gene.frma),columns=c("SYMBOL","ENTREZID"), keytype="SYMBOL")
-
-TopTableSt41.gene.frma.2<-data.frame(rownames(TopTableSt41.gene.frma),TopTableSt41.gene.frma)
-colnames(TopTableSt41.gene.frma.2)[1]="SYMBOL"
-
-TopTableSt41.gene.frma.4<-merge(TopTableSt41.gene.frma.2,hgnc.gene.symbol.ENTREZID,by="SYMBOL",sort=FALSE)
-htmlpage(list(TopTableSt41.gene.frma.4$ENTREZID),filename=paste0(out_dir,out_file_name),
-         title=out_title,
-         othernames=TopTableSt41.gene.frma.4[,-8],
-         table.head=c("ENTREZID",colnames(TopTableSt41.gene.frma.3[,-8])),
-         table.center=TRUE, digits=6)
-}
-
 OutPut2HtmlTable(TopTableSt41.gene.frma,"/media/H_driver/2015/Sophia/Results/","St41-6-frma.html","st4-vs-st1_HTML_report")
 OutPut2HtmlTable(TopTableSt34.gene.frma,"/media/H_driver/2015/Sophia/Results/","St34-6-frma.html","st3-vs-st4_HTML_report")
 
 #Generate the rank file for GSEA
-
-GenerateRankFile4GSEA<-function(TopTableSt41.gene.frma,out_dir,out_file_name,up_down_top){
-
-  FC.sign=sign(TopTableSt41.gene.frma[,1])
-  p.inve=1/TopTableSt41.gene.frma[,4]
-  Gene.Rank.Score=FC.sign*p.inve
-
-  TopTableSt41.gene.frma.GSEA<-cbind(TopTableSt41.gene.frma,Gene.Rank.Score)
-
-  TopTableSt41.gene.frma.GSEA.sorted.by.score<-TopTableSt41.gene.frma.GSEA[order(TopTableSt41.gene.frma.GSEA[,7],decreasing = TRUE),]
-
-  Re.GSEA<-cbind(rownames(TopTableSt41.gene.frma.GSEA.sorted.by.score),TopTableSt41.gene.frma.GSEA.sorted.by.score[,7])
-  colnames(Re.GSEA)=c("GeneName","Score")
-
-  Re.GSEA.2<-rbind(head(Re.GSEA,up_down_top),tail(Re.GSEA,up_down_top))
-
-  write.table(Re.GSEA.2, file = paste0(out_dir,out_file_name),quote = FALSE, sep ="\t",row.names = FALSE,col.names = FALSE)
-
-  return(TopTableSt41.gene.frma.GSEA.sorted.by.score)
-}
 
 GenerateRankFile4GSEA(TopTableSt41.gene.frma,"/media/H_driver/2015/Sophia/Results/","St41-4_GSEA_up_down_300.rnk",300)
 
@@ -1978,13 +1941,7 @@ data.set2.cancer.GSM.cel.mapping.2<-data.set2.cancer.GSM.cel.mapping[,c(1,8)]
 data.set2.cancer.GSM.part<-as.character(data.set2.cancer.GSM.cel.mapping.2[which(as.character(data.set2.cancer.GSM.cel.mapping.2[,1])!=""),1])
 data.set2.cancer.GSM.part.cel.name<-as.character(data.set2.cancer.GSM.cel.mapping.2[which(as.character(data.set2.cancer.GSM.cel.mapping.2[,1])!=""),2])
 
-ReformatCelName<-function(data.set2.cancer.GSM.cel.mapping.3){
-data.set2.cancer.GSM.cel.mapping.3.2<-gsub(".cel","",data.set2.cancer.GSM.cel.mapping.3)
-data.set2.cancer.GSM.cel.mapping.3.2.2<-gsub(".CEL","",as.character(data.set2.cancer.GSM.cel.mapping.3.2))
-data.set2.cancer.GSM.cel.mapping.3.2.2.2<-gsub("-","_",as.character(data.set2.cancer.GSM.cel.mapping.3.2.2))
-data.set2.cancer.GSM.cel.mapping.4<-cbind(data.set2.cancer.GSM.cel.mapping.3,data.set2.cancer.GSM.cel.mapping.3.2.2.2,sapply(strsplit(data.set2.cancer.GSM.cel.mapping.3.2.2.2,"_"),"[[",1))
-return(data.set2.cancer.GSM.cel.mapping.4)
-}
+
 
 data.set2.cancer.GSM.cel.mapping.combine<-cbind(data.set2.cancer.GSM.part,ReformatCelName(data.set2.cancer.GSM.part.cel.name))
 GSM.based.cel.index<-which(original.cel.file.names.key[,3] %in% data.set2.cancer.GSM.cel.mapping.combine[,1])
@@ -2136,67 +2093,14 @@ fit2.st134.frma  <- eBayes(fit2.st134.frma)
 TopTableSt34.gene.frma<-topTable(fit2.st134.frma,coef=1,n=dim(data.byGSym.2)[1])
 TopTableSt41.gene.frma<-topTable(fit2.st134.frma,coef=2,n=dim(data.byGSym.2)[1])
 
-OutPut2HtmlTable<-function(TopTableSt41.gene.frma,out_dir,out_file_name,out_title){
-
-hgnc.gene.symbol.ENTREZID<-select(Homo.sapiens, keys=rownames(TopTableSt41.gene.frma),columns=c("SYMBOL","ENTREZID"), keytype="SYMBOL")
-
-TopTableSt41.gene.frma.2<-data.frame(rownames(TopTableSt41.gene.frma),TopTableSt41.gene.frma)
-colnames(TopTableSt41.gene.frma.2)[1]="SYMBOL"
-
-TopTableSt41.gene.frma.4<-merge(TopTableSt41.gene.frma.2,hgnc.gene.symbol.ENTREZID,by="SYMBOL",sort=FALSE)
-htmlpage(list(TopTableSt41.gene.frma.4$ENTREZID),filename=paste0(out_dir,out_file_name),
-         title=out_title,
-         othernames=TopTableSt41.gene.frma.4[,-8],
-         table.head=c("ENTREZID",colnames(TopTableSt41.gene.frma.3[,-8])),
-         table.center=TRUE, digits=6)
-}
-
 OutPut2HtmlTable(TopTableSt41.gene.frma,"/media/H_driver/2015/Sophia/Results/","St41-7-frma.html","st4-vs-st1_HTML_report")
 OutPut2HtmlTable(TopTableSt34.gene.frma,"/media/H_driver/2015/Sophia/Results/","St34-6-frma.html","st3-vs-st4_HTML_report")
 
-#Generate the rank file for GSEA
-GenerateRankFile4GSEA<-function(TopTableSt41.gene.frma,out_dir,out_file_name,up_down_top){
 
-  FC.sign=sign(TopTableSt41.gene.frma[,1])
-  p.inve=1/TopTableSt41.gene.frma[,4]
-  Gene.Rank.Score=FC.sign*p.inve
-
-  TopTableSt41.gene.frma.GSEA<-cbind(TopTableSt41.gene.frma,Gene.Rank.Score)
-
-  TopTableSt41.gene.frma.GSEA.sorted.by.score<-TopTableSt41.gene.frma.GSEA[order(TopTableSt41.gene.frma.GSEA[,7],decreasing = TRUE),]
-
-  Re.GSEA<-cbind(rownames(TopTableSt41.gene.frma.GSEA.sorted.by.score),TopTableSt41.gene.frma.GSEA.sorted.by.score[,7])
-  colnames(Re.GSEA)=c("GeneName","Score")
-
-  Re.GSEA.2<-rbind(head(Re.GSEA,up_down_top),tail(Re.GSEA,up_down_top))
-
-  write.table(Re.GSEA.2, file = paste0(out_dir,out_file_name),quote = FALSE, sep ="\t",row.names = FALSE,col.names = FALSE)
-
-  return(TopTableSt41.gene.frma.GSEA.sorted.by.score)
-}
 
 GenerateRankFile4GSEA(TopTableSt41.gene.frma,"/media/H_driver/2015/Sophia/Results/","St41-4_GSEA_up_down_300.rnk",300)
 
 #write.csv(TopTableSt41.gene.frma, file="/media/H_driver/2015/Sophia/Results/St41.csv",quote =FALSE)
-
-#Use all data to perform GSEA analysis
-  GenerateFiles4GSEA<-function(ed.set123.frma.cancer,out_dir,out_file_name,subtypeA,subtypeB){
-
-    index.st4<-which(colnames(ed.set123.frma.cancer) %in% cel.file.name.key.set.symbol.st134[which(cel.file.name.key.set.symbol.st134[,5]==subtypeA),2])
-    index.st1<-which(colnames(ed.set123.frma.cancer) %in% cel.file.name.key.set.symbol.st134[which(cel.file.name.key.set.symbol.st134[,5]==subtypeB),2])
-
-    ed.set123.frma.cancer.st41<-cbind(ed.set123.frma.cancer[,index.st4],ed.set123.frma.cancer[,index.st1])
-    cat(subtypeA,"\t",length(index.st4),subtypeB,"\t",length(index.st1),"\t",dim(ed.set123.frma.cancer.st41),"\n")
-
-    ed.set123.frma.cancer.st41.reformat<-cbind(rownames(ed.set123.frma.cancer.st41),rep("NA",dim(ed.set123.frma.cancer.st41)[1]),ed.set123.frma.cancer.st41)
-    colnames(ed.set123.frma.cancer.st41.reformat)[c(1,2)]=c("NAME","Description")
-
-    write.table(ed.set123.frma.cancer.st41.reformat,file = paste0(out_dir,out_file_name),quote = FALSE, sep ="\t",row.names = FALSE,col.names = TRUE)
-
-  }
-
-
-
 
 GenerateFiles4GSEA(ed.set123.frma.cancer,"/media/H_driver/2015/Sophia/Results/","St41-4_GSEA.xls","st4","st1")
 GenerateFiles4GSEA(ed.set123.frma.cancer,"/media/H_driver/2015/Sophia/Results/","St34-4_GSEA.xls","st3","st4")
@@ -2286,13 +2190,7 @@ data.set2.cancer.GSM.cel.mapping.2<-data.set2.cancer.GSM.cel.mapping[,c(1,8)]
 data.set2.cancer.GSM.part<-as.character(data.set2.cancer.GSM.cel.mapping.2[which(as.character(data.set2.cancer.GSM.cel.mapping.2[,1])!=""),1])
 data.set2.cancer.GSM.part.cel.name<-as.character(data.set2.cancer.GSM.cel.mapping.2[which(as.character(data.set2.cancer.GSM.cel.mapping.2[,1])!=""),2])
 
-ReformatCelName<-function(data.set2.cancer.GSM.cel.mapping.3){
-data.set2.cancer.GSM.cel.mapping.3.2<-gsub(".cel","",data.set2.cancer.GSM.cel.mapping.3)
-data.set2.cancer.GSM.cel.mapping.3.2.2<-gsub(".CEL","",as.character(data.set2.cancer.GSM.cel.mapping.3.2))
-data.set2.cancer.GSM.cel.mapping.3.2.2.2<-gsub("-","_",as.character(data.set2.cancer.GSM.cel.mapping.3.2.2))
-data.set2.cancer.GSM.cel.mapping.4<-cbind(data.set2.cancer.GSM.cel.mapping.3,data.set2.cancer.GSM.cel.mapping.3.2.2.2,sapply(strsplit(data.set2.cancer.GSM.cel.mapping.3.2.2.2,"_"),"[[",1))
-return(data.set2.cancer.GSM.cel.mapping.4)
-}
+
 
 data.set2.cancer.GSM.cel.mapping.combine<-cbind(data.set2.cancer.GSM.part,ReformatCelName(data.set2.cancer.GSM.part.cel.name))
 GSM.based.cel.index<-which(original.cel.file.names.key[,3] %in% data.set2.cancer.GSM.cel.mapping.combine[,1])
@@ -2442,65 +2340,14 @@ fit2.st134.frma  <- eBayes(fit2.st134.frma)
 TopTableSt34.gene.frma<-topTable(fit2.st134.frma,coef=1,n=dim(data.byGSym.2)[1])
 TopTableSt41.gene.frma<-topTable(fit2.st134.frma,coef=2,n=dim(data.byGSym.2)[1])
 
-OutPut2HtmlTable<-function(TopTableSt41.gene.frma,out_dir,out_file_name,out_title){
 
-hgnc.gene.symbol.ENTREZID<-select(Homo.sapiens, keys=rownames(TopTableSt41.gene.frma),columns=c("SYMBOL","ENTREZID"), keytype="SYMBOL")
-
-TopTableSt41.gene.frma.2<-data.frame(rownames(TopTableSt41.gene.frma),TopTableSt41.gene.frma)
-colnames(TopTableSt41.gene.frma.2)[1]="SYMBOL"
-
-TopTableSt41.gene.frma.4<-merge(TopTableSt41.gene.frma.2,hgnc.gene.symbol.ENTREZID,by="SYMBOL",sort=FALSE)
-
-htmlpage(list(TopTableSt41.gene.frma.4$ENTREZID),filename=paste0(out_dir,out_file_name),
-         title=out_title,
-         othernames=TopTableSt41.gene.frma.4[,-8],
-         table.head=c("ENTREZID",colnames(TopTableSt41.gene.frma.3[,-8])),
-         table.center=TRUE, digits=6)
-}
 
 OutPut2HtmlTable(TopTableSt41.gene.frma,"/media/H_driver/2015/Sophia/Results/","St41-8-frma.html","st4-vs-st1_HTML_report")
 OutPut2HtmlTable(TopTableSt34.gene.frma,"/media/H_driver/2015/Sophia/Results/","St34-8-frma.html","st3-vs-st4_HTML_report")
 
-#Generate the rank file for GSEA
-GenerateRankFile4GSEA<-function(TopTableSt41.gene.frma,out_dir,out_file_name,up_down_top){
-
-  FC.sign=sign(TopTableSt41.gene.frma[,1])
-  p.inve=1/TopTableSt41.gene.frma[,4]
-  Gene.Rank.Score=FC.sign*p.inve
-
-  TopTableSt41.gene.frma.GSEA<-cbind(TopTableSt41.gene.frma,Gene.Rank.Score)
-
-  TopTableSt41.gene.frma.GSEA.sorted.by.score<-TopTableSt41.gene.frma.GSEA[order(TopTableSt41.gene.frma.GSEA[,7],decreasing = TRUE),]
-
-  Re.GSEA<-cbind(rownames(TopTableSt41.gene.frma.GSEA.sorted.by.score),TopTableSt41.gene.frma.GSEA.sorted.by.score[,7])
-  colnames(Re.GSEA)=c("GeneName","Score")
-
-  Re.GSEA.2<-rbind(head(Re.GSEA,up_down_top),tail(Re.GSEA,up_down_top))
-
-  write.table(Re.GSEA.2, file = paste0(out_dir,out_file_name),quote = FALSE, sep ="\t",row.names = FALSE,col.names = FALSE)
-
-  return(TopTableSt41.gene.frma.GSEA.sorted.by.score)
-}
-
 GenerateRankFile4GSEA(TopTableSt41.gene.frma,"/media/H_driver/2015/Sophia/Results/","St41-4_GSEA_up_down_300.rnk",300)
 
 #write.csv(TopTableSt41.gene.frma, file="/media/H_driver/2015/Sophia/Results/St41.csv",quote =FALSE)
-
-#Use all data to perform GSEA analysis
-GenerateFiles4GSEA<-function(ed.set123.frma.cancer,out_dir,out_file_name,subtypeA,subtypeB){
-
-  index.st4<-which(colnames(ed.set123.frma.cancer) %in% cel.file.name.key.set.symbol.st134[which(cel.file.name.key.set.symbol.st134[,5]==subtypeA),2])
-  index.st1<-which(colnames(ed.set123.frma.cancer) %in% cel.file.name.key.set.symbol.st134[which(cel.file.name.key.set.symbol.st134[,5]==subtypeB),2])
-
-  ed.set123.frma.cancer.st41<-cbind(ed.set123.frma.cancer[,index.st4],ed.set123.frma.cancer[,index.st1])
-  cat(subtypeA,"\t",length(index.st4),subtypeB,"\t",length(index.st1),"\t",dim(ed.set123.frma.cancer.st41),"\n")
-
-  ed.set123.frma.cancer.st41.reformat<-cbind(rownames(ed.set123.frma.cancer.st41),rep("NA",dim(ed.set123.frma.cancer.st41)[1]),ed.set123.frma.cancer.st41)
-  colnames(ed.set123.frma.cancer.st41.reformat)[c(1,2)]=c("NAME","Description")
-
-  write.table(ed.set123.frma.cancer.st41.reformat,file = paste0(out_dir,out_file_name),quote = FALSE, sep ="\t",row.names = FALSE,col.names = TRUE)
-
-}
 
 GenerateFiles4GSEA(ed.set123.frma.cancer,"/media/H_driver/2015/Sophia/Results/","St41-4_GSEA.xls","st4","st1")
 GenerateFiles4GSEA(ed.set123.frma.cancer,"/media/H_driver/2015/Sophia/Results/","St34-4_GSEA.xls","st3","st4")
@@ -2587,13 +2434,6 @@ data.set2.cancer.GSM.cel.mapping.2<-data.set2.cancer.GSM.cel.mapping[,c(1,8)]
 data.set2.cancer.GSM.part<-as.character(data.set2.cancer.GSM.cel.mapping.2[which(as.character(data.set2.cancer.GSM.cel.mapping.2[,1])!=""),1])
 data.set2.cancer.GSM.part.cel.name<-as.character(data.set2.cancer.GSM.cel.mapping.2[which(as.character(data.set2.cancer.GSM.cel.mapping.2[,1])!=""),2])
 
-ReformatCelName<-function(data.set2.cancer.GSM.cel.mapping.3){
-data.set2.cancer.GSM.cel.mapping.3.2<-gsub(".cel","",data.set2.cancer.GSM.cel.mapping.3)
-data.set2.cancer.GSM.cel.mapping.3.2.2<-gsub(".CEL","",as.character(data.set2.cancer.GSM.cel.mapping.3.2))
-data.set2.cancer.GSM.cel.mapping.3.2.2.2<-gsub("-","_",as.character(data.set2.cancer.GSM.cel.mapping.3.2.2))
-data.set2.cancer.GSM.cel.mapping.4<-cbind(data.set2.cancer.GSM.cel.mapping.3,data.set2.cancer.GSM.cel.mapping.3.2.2.2,sapply(strsplit(data.set2.cancer.GSM.cel.mapping.3.2.2.2,"_"),"[[",1))
-return(data.set2.cancer.GSM.cel.mapping.4)
-}
 
 data.set2.cancer.GSM.cel.mapping.combine<-cbind(data.set2.cancer.GSM.part,ReformatCelName(data.set2.cancer.GSM.part.cel.name))
 GSM.based.cel.index<-which(original.cel.file.names.key[,3] %in% data.set2.cancer.GSM.cel.mapping.combine[,1])
@@ -2743,45 +2583,10 @@ fit2.st134.frma  <- eBayes(fit2.st134.frma)
 TopTableSt34.gene.frma<-topTable(fit2.st134.frma,coef=1,n=dim(data.byGSym.2)[1])
 TopTableSt41.gene.frma<-topTable(fit2.st134.frma,coef=2,n=dim(data.byGSym.2)[1])
 
-OutPut2HtmlTable<-function(TopTableSt41.gene.frma,out_dir,out_file_name,out_title){
 
-hgnc.gene.symbol.ENTREZID<-select(Homo.sapiens, keys=rownames(TopTableSt41.gene.frma),columns=c("SYMBOL","ENTREZID"), keytype="SYMBOL")
-
-TopTableSt41.gene.frma.2<-data.frame(rownames(TopTableSt41.gene.frma),TopTableSt41.gene.frma)
-colnames(TopTableSt41.gene.frma.2)[1]="SYMBOL"
-
-TopTableSt41.gene.frma.4<-merge(TopTableSt41.gene.frma.2,hgnc.gene.symbol.ENTREZID,by="SYMBOL",sort=FALSE)
-
-htmlpage(list(TopTableSt41.gene.frma.4$ENTREZID),filename=paste0(out_dir,out_file_name),
-         title=out_title,
-         othernames=TopTableSt41.gene.frma.4[,-8],
-         table.head=c("ENTREZID",colnames(TopTableSt41.gene.frma.3[,-8])),
-         table.center=TRUE, digits=6)
-}
 
 OutPut2HtmlTable(TopTableSt41.gene.frma,"/media/H_driver/2015/Sophia/Results/","St41-8-frma.html","st4-vs-st1_HTML_report")
 OutPut2HtmlTable(TopTableSt34.gene.frma,"/media/H_driver/2015/Sophia/Results/","St34-8-frma.html","st3-vs-st4_HTML_report")
-
-#Generate the rank file for GSEA
-GenerateRankFile4GSEA<-function(TopTableSt41.gene.frma,out_dir,out_file_name,up_down_top){
-
-  FC.sign=sign(TopTableSt41.gene.frma[,1])
-  p.inve=1/TopTableSt41.gene.frma[,4]
-  Gene.Rank.Score=FC.sign*p.inve
-
-  TopTableSt41.gene.frma.GSEA<-cbind(TopTableSt41.gene.frma,Gene.Rank.Score)
-
-  TopTableSt41.gene.frma.GSEA.sorted.by.score<-TopTableSt41.gene.frma.GSEA[order(TopTableSt41.gene.frma.GSEA[,7],decreasing = TRUE),]
-
-  Re.GSEA<-cbind(rownames(TopTableSt41.gene.frma.GSEA.sorted.by.score),TopTableSt41.gene.frma.GSEA.sorted.by.score[,7])
-  colnames(Re.GSEA)=c("GeneName","Score")
-
-  Re.GSEA.2<-rbind(head(Re.GSEA,up_down_top),tail(Re.GSEA,up_down_top))
-
-  write.table(Re.GSEA.2, file = paste0(out_dir,out_file_name),quote = FALSE, sep ="\t",row.names = FALSE,col.names = FALSE)
-
-  return(TopTableSt41.gene.frma.GSEA.sorted.by.score)
-}
 
 GenerateRankFile4GSEA(TopTableSt41.gene.frma,"/media/H_driver/2015/Sophia/Results/","St41-4_GSEA_up_down_300.rnk",300)
 
@@ -2802,65 +2607,8 @@ fit2.st134.all.probes.frma  <- eBayes(fit2.st134.all.probes.frma)
 TopTableSt34.all.probes.frma<-topTable(fit2.st134.all.probes.frma,coef=1,n=dim(ed.set123.frma.cancer.reorder)[1])
 TopTableSt41.all.probes.frma<-topTable(fit2.st134.all.probes.frma,coef=2,n=dim(ed.set123.frma.cancer.reorder)[1])
 
-OutPut2HtmlTableAllProbes<-function(TopTableSt41.all.probes.frma,out_dir,out_file_name,out_title){
-
-
-  GeneSym.all <- as.data.frame(getSYMBOL(rownames(TopTableSt41.all.probes.frma), "hgu133plus2.db"))
-
-  #probes.GeneSym.all<-cbind(rownames(TopTableSt41.all.probes.frma),GeneSym.all)
-
-  #rownames(probes.GeneSym.all)
-  #hgnc.gene.symbol.ENTREZID<-select(Homo.sapiens, keys=rownames(TopTableSt41.gene.frma),columns=c("SYMBOL","ENTREZID"), keytype="SYMBOL")
-
-
-  TopTableSt41.all.probes.frma.2<-merge(GeneSym.all,TopTableSt41.all.probes.frma,by=0,sort=FALSE)
-  rownames(TopTableSt41.all.probes.frma.2)=TopTableSt41.all.probes.frma.2[,1]
-
-  colnames(TopTableSt41.all.probes.frma.2)[1]="Probe_ID"
-  colnames(TopTableSt41.all.probes.frma.2)[2]="SYMBOL"
-
- TopTableSt41.all.probes.frma.3<-data.frame(TopTableSt41.all.probes.frma.2,Index=seq(1,dim(TopTableSt41.all.probes.frma.2)[1]))
-
-  #colnames(TopTableSt41.gene.frma.2)[1]="SYMBOL"
-  ll <- getEG(rownames(TopTableSt41.all.probes.frma.3),"hgu133plus2.db")
-
-  #TopTableSt41.gene.frma.4<-merge(TopTableSt41.gene.frma.2,hgnc.gene.symbol.ENTREZID,by="SYMBOL",sort=FALSE)
-
-
-  htmlpage(list(ll),filename=paste0(out_dir,out_file_name),
-           title=out_title,
-           othernames=TopTableSt41.all.probes.frma.3,
-           table.head=c("Locus_ID",colnames(TopTableSt41.all.probes.frma.3)),
-           table.center=TRUE, digits=6)
-
-  return(TopTableSt41.all.probes.frma.3)
-}
-
 RE41<-OutPut2HtmlTableAllProbes(TopTableSt41.all.probes.frma,"/media/H_driver/2015/Sophia/Results/","St41-all-probes-frma-3.html","st4-vs-st1_HTML_report")
 RE34<-OutPut2HtmlTableAllProbes(TopTableSt34.all.probes.frma,"/media/H_driver/2015/Sophia/Results/","St34-all-probes-frma-3.html","st3-vs-st4_HTML_report")
-
-#head(RE41)
-
-GenerateRank4AllProbes<-function(TopTableSt41.all.probes.frma,up_down_top){
-
-  FC.sign=sign(TopTableSt41.all.probes.frma[,1])
-  p.inve=1/TopTableSt41.all.probes.frma[,4]
-  Gene.Rank.Score=FC.sign*p.inve
-
-  TopTableSt41.gene.frma.GSEA<-cbind(TopTableSt41.all.probes.frma,Gene.Rank.Score)
-
-  TopTableSt41.gene.frma.GSEA.sorted.by.score<-TopTableSt41.gene.frma.GSEA[order(TopTableSt41.gene.frma.GSEA[,7],decreasing = TRUE),]
-
-  Re.GSEA<-cbind(rownames(TopTableSt41.gene.frma.GSEA.sorted.by.score),TopTableSt41.gene.frma.GSEA.sorted.by.score[,7])
-  colnames(Re.GSEA)=c("Probe","Score")
-
-  Re.GSEA.2<-rbind(head(Re.GSEA,up_down_top),tail(Re.GSEA,up_down_top))
-
-  #write.table(Re.GSEA.2, file = paste0(out_dir,out_file_name),quote = FALSE, sep ="\t",row.names = FALSE,col.names = FALSE)
-
-  return(Re.GSEA.2)
-}
-
 
 TopTableSt41.most.DE.probes.frma<-GenerateRank4AllProbes(TopTableSt41.all.probes.frma,200)
 TopTableSt34.most.DE.probes.frma<-GenerateRank4AllProbes(TopTableSt34.all.probes.frma,200)
@@ -2895,21 +2643,7 @@ Draw_PCA(ed.set123.frma.cancer.reorder,"PCA_58_cancer_sample_frma_all_probes.pdf
 
 save(heatmap_wPCA,ed.set123.frma.cancer.reorder,check.match,file="Data_4_heatmap_PCA.RData")
 
-#Use all data to perform GSEA analysis
-GenerateFiles4GSEA<-function(ed.set123.frma.cancer,out_dir,out_file_name,subtypeA,subtypeB){
 
-  index.st4<-which(colnames(ed.set123.frma.cancer) %in% cel.file.name.key.set.symbol.st134[which(cel.file.name.key.set.symbol.st134[,5]==subtypeA),2])
-  index.st1<-which(colnames(ed.set123.frma.cancer) %in% cel.file.name.key.set.symbol.st134[which(cel.file.name.key.set.symbol.st134[,5]==subtypeB),2])
-
-  ed.set123.frma.cancer.st41<-cbind(ed.set123.frma.cancer[,index.st4],ed.set123.frma.cancer[,index.st1])
-  cat(subtypeA,"\t",length(index.st4),subtypeB,"\t",length(index.st1),"\t",dim(ed.set123.frma.cancer.st41),"\n")
-
-  ed.set123.frma.cancer.st41.reformat<-cbind(rownames(ed.set123.frma.cancer.st41),rep("NA",dim(ed.set123.frma.cancer.st41)[1]),ed.set123.frma.cancer.st41)
-  colnames(ed.set123.frma.cancer.st41.reformat)[c(1,2)]=c("NAME","Description")
-
-  write.table(ed.set123.frma.cancer.st41.reformat,file = paste0(out_dir,out_file_name),quote = FALSE, sep ="\t",row.names = FALSE,col.names = TRUE)
-
-}
 
 GenerateFiles4GSEA(ed.set123.frma.cancer,"/media/H_driver/2015/Sophia/Results/","St41-4_GSEA.xls","st4","st1")
 GenerateFiles4GSEA(ed.set123.frma.cancer,"/media/H_driver/2015/Sophia/Results/","St34-4_GSEA.xls","st3","st4")
@@ -2998,13 +2732,7 @@ data.set2.cancer.GSM.cel.mapping.2<-data.set2.cancer.GSM.cel.mapping[,c(1,8)]
 data.set2.cancer.GSM.part<-as.character(data.set2.cancer.GSM.cel.mapping.2[which(as.character(data.set2.cancer.GSM.cel.mapping.2[,1])!=""),1])
 data.set2.cancer.GSM.part.cel.name<-as.character(data.set2.cancer.GSM.cel.mapping.2[which(as.character(data.set2.cancer.GSM.cel.mapping.2[,1])!=""),2])
 
-ReformatCelName<-function(data.set2.cancer.GSM.cel.mapping.3){
-data.set2.cancer.GSM.cel.mapping.3.2<-gsub(".cel","",data.set2.cancer.GSM.cel.mapping.3)
-data.set2.cancer.GSM.cel.mapping.3.2.2<-gsub(".CEL","",as.character(data.set2.cancer.GSM.cel.mapping.3.2))
-data.set2.cancer.GSM.cel.mapping.3.2.2.2<-gsub("-","_",as.character(data.set2.cancer.GSM.cel.mapping.3.2.2))
-data.set2.cancer.GSM.cel.mapping.4<-cbind(data.set2.cancer.GSM.cel.mapping.3,data.set2.cancer.GSM.cel.mapping.3.2.2.2,sapply(strsplit(data.set2.cancer.GSM.cel.mapping.3.2.2.2,"_"),"[[",1))
-return(data.set2.cancer.GSM.cel.mapping.4)
-}
+
 
 data.set2.cancer.GSM.cel.mapping.combine<-cbind(data.set2.cancer.GSM.part,ReformatCelName(data.set2.cancer.GSM.part.cel.name))
 GSM.based.cel.index<-which(original.cel.file.names.key[,3] %in% data.set2.cancer.GSM.cel.mapping.combine[,1])
@@ -3154,45 +2882,12 @@ fit2.st134.frma  <- eBayes(fit2.st134.frma)
 TopTableSt34.gene.frma<-topTable(fit2.st134.frma,coef=1,n=dim(data.byGSym.2)[1])
 TopTableSt41.gene.frma<-topTable(fit2.st134.frma,coef=2,n=dim(data.byGSym.2)[1])
 
-OutPut2HtmlTable<-function(TopTableSt41.gene.frma,out_dir,out_file_name,out_title){
 
-hgnc.gene.symbol.ENTREZID<-select(Homo.sapiens, keys=rownames(TopTableSt41.gene.frma),columns=c("SYMBOL","ENTREZID"), keytype="SYMBOL")
-
-TopTableSt41.gene.frma.2<-data.frame(rownames(TopTableSt41.gene.frma),TopTableSt41.gene.frma)
-colnames(TopTableSt41.gene.frma.2)[1]="SYMBOL"
-
-TopTableSt41.gene.frma.4<-merge(TopTableSt41.gene.frma.2,hgnc.gene.symbol.ENTREZID,by="SYMBOL",sort=FALSE)
-
-htmlpage(list(TopTableSt41.gene.frma.4$ENTREZID),filename=paste0(out_dir,out_file_name),
-         title=out_title,
-         othernames=TopTableSt41.gene.frma.4[,-8],
-         table.head=c("ENTREZID",colnames(TopTableSt41.gene.frma.3[,-8])),
-         table.center=TRUE, digits=6)
-}
 
 OutPut2HtmlTable(TopTableSt41.gene.frma,"/media/H_driver/2015/Sophia/Results/","St41-8-frma.html","st4-vs-st1_HTML_report")
 OutPut2HtmlTable(TopTableSt34.gene.frma,"/media/H_driver/2015/Sophia/Results/","St34-8-frma.html","st3-vs-st4_HTML_report")
 
-#Generate the rank file for GSEA
-GenerateRankFile4GSEA<-function(TopTableSt41.gene.frma,out_dir,out_file_name,up_down_top){
 
-  FC.sign=sign(TopTableSt41.gene.frma[,1])
-  p.inve=1/TopTableSt41.gene.frma[,4]
-  Gene.Rank.Score=FC.sign*p.inve
-
-  TopTableSt41.gene.frma.GSEA<-cbind(TopTableSt41.gene.frma,Gene.Rank.Score)
-
-  TopTableSt41.gene.frma.GSEA.sorted.by.score<-TopTableSt41.gene.frma.GSEA[order(TopTableSt41.gene.frma.GSEA[,7],decreasing = TRUE),]
-
-  Re.GSEA<-cbind(rownames(TopTableSt41.gene.frma.GSEA.sorted.by.score),TopTableSt41.gene.frma.GSEA.sorted.by.score[,7])
-  colnames(Re.GSEA)=c("GeneName","Score")
-
-  Re.GSEA.2<-rbind(head(Re.GSEA,up_down_top),tail(Re.GSEA,up_down_top))
-
-  write.table(Re.GSEA.2, file = paste0(out_dir,out_file_name),quote = FALSE, sep ="\t",row.names = FALSE,col.names = FALSE)
-
-  return(TopTableSt41.gene.frma.GSEA.sorted.by.score)
-}
 
 GenerateRankFile4GSEA(TopTableSt41.gene.frma,"/media/H_driver/2015/Sophia/Results/","St41-4_GSEA_up_down_300.rnk",300)
 
