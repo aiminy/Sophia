@@ -1,98 +1,3 @@
-biocLite("SpikeInSubset")
-biocLite("hgu95av2cdf")
-library(SpikeInSubset)
-library(limma)
-data(spikein95)
-rma.eset <- rma(spikein95)
-rma.e <- exprs(rma.eset)
-
-head(rma.e)
-
-design <- model.matrix(~factor(rma.eset$population))
-head(rma.eset)
-
-biocLite("hgu95av2.db")
-library(limma)
-targets <- readTargets("targets.txt")
-data(RG)
-RG <- backgroundCorrect(RG, method="normexp")
-MA <- normalizeWithinArrays(RG)
-targets <- data.frame(Cy3=I(rep("Pool",6)),Cy5=I(c("WT","WT","WT","KO","KO","KO")))
-design <- modelMatrix(targets, ref="Pool")
-arrayw <- arrayWeightsSimple(MA, design)
-fit <- lmFit(MA, design, weights=arrayw)
-fit2 <- contrasts.fit(fit, contrasts=c(-1,1))
-fit2 <- eBayes(fit2)
-
-setwd("/media/H_driver/Aimin_project/estrogen")
-dir()
-targets <- readTargets("estrogen.txt", sep="")
-targets
-library(affy)
-library(hgu95av2cdf)
-abatch <- ReadAffy(filenames=targets$filename)
-eset <- rma(abatch)
-expr(eset)
-f <- paste(targets$estrogen,targets$time.h,sep="")
-
-f <- factor(f)
-f
-design <- model.matrix(~0+f)
-colnames(design) <- levels(f)
-design
-fit <- lmFit(eset, design)
-names(fit)
-
-cont.matrix <- makeContrasts(E10="present10-absent10",E48="present48-absent48",Time="absent48-absent10",levels=design)
-cont.matrix
-
-fit2  <- contrasts.fit(fit, cont.matrix)
-fit2  <- eBayes(fit2)
-
-colnames(fit2)
-topTable(fit2,coef=1)
-topTable(fit2,coef=1,adjust="fdr")
-topTable(fit2,coef=2)
-topTable(fit2,coef=2,adjust="fdr")
-
-results <- decideTests(fit2)
-summary(results)
-vennDiagram(results)
-
-library(hgu95av2cdf)
-library(hgu95av2.db)
-
-geneIDs <- ls(hgu95av2cdf)
-
-geneSymbols <- as.character(unlist(lapply(mget(geneIDs,env=hgu95av2SYMBOL),
-                                          function (symbol) { return(paste(symbol,collapse="; ")) } )))
-geneNames <- as.character(unlist(lapply(mget(geneIDs,env=hgu95av2GENENAME),
-                                        function (name) { return(paste(name,collapse="; ")) } )))
-unigene <- as.character(unlist(lapply(mget(geneIDs,env=hgu95av2UNIGENE),
-                                      function (unigeneID) { return(paste(unigeneID,collapse="; ")) } )))
-
-geneNames <- substring(geneNames,1,40)
-unigene <- gsub("Hs\\.","",unigene)
-
-genelist <- data.frame(GeneID=geneIDs,GeneSymbol=geneSymbols,GeneName=geneNames,
-                       UniGeneHsID=paste("<a href=http://www.ncbi.nlm.nih.gov/UniGene/clust.cgi?ORG=Hs&CID=",
-                                         unigene,">",unigene,"</a>",sep=""))
-
-unigeneTopTableEst10 <- topTable(fit2,coef=1,n=20,genelist=genelist)
-unigeneTopTableEst48 <- topTable(fit2,coef=2,n=20,genelist=genelist)
-
-library(xtable)
-xtableUnigeneEst10 <- xtable(unigeneTopTableEst10,display=c("d","s","s","s","s","g","g","g","e","g","g"))
-xtableUnigeneEst48 <- xtable(unigeneTopTableEst48,display=c("d","s","s","s","s","g","g","g","e","g","g"))
-
-cat(file="estrogenUniGeneE10.html","<html>\n<body>")
-print.xtable(xtableUnigeneEst10,type="html",file="estrogenUniGeneE10.html",append=TRUE)
-cat(file="estrogenUniGeneE10.html","</body>\n</html>",append=TRUE)
-
-cat(file="estrogenUniGeneE48.html","<html>\n<body>")
-print.xtable(xtableUnigeneEst48,type="html",file="estrogenUniGeneE48.html",append=TRUE)
-cat(file="estrogenUniGeneE48.html","</body>\n</html>",append=TRUE)
-#load the affy library
 library(gdata)
 library(affy)
 library(affyio)
@@ -108,250 +13,218 @@ library(hugene10sttranscriptcluster.db)
 biocLite("pd.hg.u133.plus.2")
 library(pd.hg.u133.plus.2)
 
-# Read in the CEL files in the directory, then normalize the data
-setwd("/media/H_driver/2015/Sophia/FTE-HGSC Gene Expression/Microarray_Set1_FTE_HGSC_LCM")
-data.set1 <- ReadAffy()
-ed.raw.set1 <- exprs(data.set1)
-samp.set1 <- sampleNames(data.set1)
-probes.set1 <- featureNames(data.set1)
-ed.normalized.set1<- rma(data.set1)
 
-setwd("/media/H_driver/2015/Sophia/FTE-HGSC Gene Expression/Microarray_Set2_corrected")
-data.set2 <- ReadAffy()
-ed.raw.set2 <- exprs(data.set2)
-samp.set2 <- sampleNames(data.set2)
-probes.set2 <- featureNames(data.set2)
-ed.normalized.set2<- rma(data.set2)
 
-setwd("/media/H_driver/2015/Sophia/FTE-HGSC Gene Expression/Microarray_Set3_HGSCancer_only")
-data.set3 <- ReadAffy()
-ed.raw.set3 <- exprs(data.set3)
-samp.set3 <- sampleNames(data.set3)
-probes.set3 <- featureNames(data.set3)
-ed.normalized.set3<- rma(data.set3)
+parser2 <- function() {
+  head(data.ER.PR.sample.info)
 
-data.set1.normalized<-ed.normalized.set1
-data.set2.normalized<-ed.normalized.set2
-data.set3.normalized<-ed.normalized.set3
+  head(data.set1.sample.info)
+  data.set1.sample.info[,2]
+  data.set1.normalize
+  data.set2.normalized
 
-ll(dim=T)
+  grep(2367,unique(data.set1.sample.info[,2]))
 
-colnames(data.set1.normalized)
-colnames(data.set2.normalized)
-colnames(data.set3.normalized)
+  unique(data.set2.sample.info[,2])
+  head(data.ER.PR.sample.info)
 
-length(colnames(data.set1.normalized))
-length(colnames(data.set2.normalized))
-length(colnames(data.set3.normalized))
-
-unique(colnames(data.set1.normalized))
-length(unique(colnames(data.set1.normalized)))
-length(unique(colnames(data.set2.normalized)))
-length(unique(colnames(data.set3.normalized)))
-
-data.set1.sample.info<-read.xls("/media/H_driver/2015/Sophia/FTE-HGSC\ Gene\ Expression/Microarray_Set1_FTE_HGSC_LCM/CASE_DESCRIPTION_SET1.xlsx")
-data.set2.sample.info<-read.xls("/home/aiminyan/Downloads/GSE28044_George.xlsx")
-data.ER.PR.sample.info<-read.xls("/media/H_driver/2015/Sophia/FTE-HGSC\ Gene\ Expression/ER_PR_Subgroup_PT2_v2.xlsx")
-head(data.ER.PR.sample.info)
-
-head(data.set1.sample.info)
-data.set1.sample.info[,2]
-data.set1.normalize
-data.set2.normalized
-
-grep(2367,unique(data.set1.sample.info[,2]))
-
-unique(data.set2.sample.info[,2])
-head(data.ER.PR.sample.info)
-
-dim(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==1),])
-dim(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==2),])
-dim(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==3),])
-dim(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==4),])
+  dim(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==1),])
+  dim(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==2),])
+  dim(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==3),])
+  dim(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==4),])
+}
 
 
 
-#ER-PR-
-ER.PR.sample1.from.set1<-MapSample2CELfile(data.ER.PR.sample.info,data.set1.normalized,1)
-ER.PR.sample1.from.set2<-MapSample2CELfile(data.ER.PR.sample.info,data.set2.normalized,1)
-ER.PR.sample1.from.set3<-MapSample2CELfile(data.ER.PR.sample.info,data.set3.normalized,1)
+parser3 <- function() {
+  #ER-PR-
+  ER.PR.sample1.from.set1<-MapSample2CELfile(data.ER.PR.sample.info,data.set1.normalized,1)
+  ER.PR.sample1.from.set2<-MapSample2CELfile(data.ER.PR.sample.info,data.set2.normalized,1)
+  ER.PR.sample1.from.set3<-MapSample2CELfile(data.ER.PR.sample.info,data.set3.normalized,1)
 
-#ER-PR+
-ER.PR.sample2.from.set1<-MapSample2CELfile(data.ER.PR.sample.info,data.set1.normalized,2)
-ER.PR.sample2.from.set2<-MapSample2CELfile(data.ER.PR.sample.info,data.set2.normalized,2)
-ER.PR.sample2.from.set3<-MapSample2CELfile(data.ER.PR.sample.info,data.set3.normalized,2)
+  #ER-PR+
+  ER.PR.sample2.from.set1<-MapSample2CELfile(data.ER.PR.sample.info,data.set1.normalized,2)
+  ER.PR.sample2.from.set2<-MapSample2CELfile(data.ER.PR.sample.info,data.set2.normalized,2)
+  ER.PR.sample2.from.set3<-MapSample2CELfile(data.ER.PR.sample.info,data.set3.normalized,2)
 
-#ER+PR-
-ER.PR.sample3.from.set1<-MapSample2CELfile(data.ER.PR.sample.info,data.set1.normalized,3)
-ER.PR.sample3.from.set2<-MapSample2CELfile(data.ER.PR.sample.info,data.set2.normalized,3)
-ER.PR.sample3.from.set3<-MapSample2CELfile(data.ER.PR.sample.info,data.set3.normalized,3)
+  #ER+PR-
+  ER.PR.sample3.from.set1<-MapSample2CELfile(data.ER.PR.sample.info,data.set1.normalized,3)
+  ER.PR.sample3.from.set2<-MapSample2CELfile(data.ER.PR.sample.info,data.set2.normalized,3)
+  ER.PR.sample3.from.set3<-MapSample2CELfile(data.ER.PR.sample.info,data.set3.normalized,3)
 
-#ER+PR+
-ER.PR.sample4.from.set1<-MapSample2CELfile(data.ER.PR.sample.info,data.set1.normalized,4)
-ER.PR.sample4.from.set2<-MapSample2CELfile(data.ER.PR.sample.info,data.set2.normalized,4)
-ER.PR.sample4.from.set3<-MapSample2CELfile(data.ER.PR.sample.info,data.set3.normalized,4)
+  #ER+PR+
+  ER.PR.sample4.from.set1<-MapSample2CELfile(data.ER.PR.sample.info,data.set1.normalized,4)
+  ER.PR.sample4.from.set2<-MapSample2CELfile(data.ER.PR.sample.info,data.set2.normalized,4)
+  ER.PR.sample4.from.set3<-MapSample2CELfile(data.ER.PR.sample.info,data.set3.normalized,4)
 
-head(ER.PR.sample1.from.set1)
-head(ER.PR.sample1.from.set2)
-head(ER.PR.sample1.from.set3)
+  head(ER.PR.sample1.from.set1)
+  head(ER.PR.sample1.from.set2)
+  head(ER.PR.sample1.from.set3)
 
-head(ER.PR.sample3.from.set1)
-head(ER.PR.sample3.from.set2)
-head(ER.PR.sample3.from.set3)
+  head(ER.PR.sample3.from.set1)
+  head(ER.PR.sample3.from.set2)
+  head(ER.PR.sample3.from.set3)
 
-head(data.set1.sample.info)
-head(data.set2.sample.info)
-head(data.ER.PR.sample.info)
+  head(data.set1.sample.info)
+  head(data.set2.sample.info)
+  head(data.ER.PR.sample.info)
 
-data.set1.sample.info[,2]
+  data.set1.sample.info[,2]
 
-data.set2.sample.info[,8:9:10]
+  data.set2.sample.info[,8:9:10]
 
-cel.file.all<-c(unique(colnames(data.set1.normalized)),unique(colnames(data.set2.normalized)),unique(colnames(data.set3.normalized)))
+  cel.file.all<-c(unique(colnames(data.set1.normalized)),unique(colnames(data.set2.normalized)),unique(colnames(data.set3.normalized)))
+}
 
-length(cel.file.all)
-cel.file.all
+parser4 <- function() {
+  length(cel.file.all)
+  cel.file.all
 
-cel.file.all.2<-rbind(cbind(unique(colnames(data.set1.normalized)),rep(1,length(unique(colnames(data.set1.normalized))))),
-cbind(unique(colnames(data.set2.normalized)),rep(2,length(unique(colnames(data.set2.normalized))))),
-cbind(unique(colnames(data.set3.normalized)),rep(3,length(unique(colnames(data.set3.normalized))))))
+  cel.file.all.2<-rbind(cbind(unique(colnames(data.set1.normalized)),rep(1,length(unique(colnames(data.set1.normalized))))),
+  cbind(unique(colnames(data.set2.normalized)),rep(2,length(unique(colnames(data.set2.normalized))))),
+  cbind(unique(colnames(data.set3.normalized)),rep(3,length(unique(colnames(data.set3.normalized))))))
 
-cel.file.cancer.data.set2<-as.character(data.set2.sample.info[which(data.set2.sample.info[,13]=="cancer"),c(1:12,13)][,8])
-cel.file.cancer.data.set2.2<-as.character(data.set2.sample.info[which(data.set2.sample.info[,13]=="cancer"),c(1:12,13)][,1])
-cel.file.cancer.data.set2.2.2<-cel.file.cancer.data.set2.2[-which(cel.file.cancer.data.set2.2=="")]
+  cel.file.cancer.data.set2<-as.character(data.set2.sample.info[which(data.set2.sample.info[,13]=="cancer"),c(1:12,13)][,8])
+  cel.file.cancer.data.set2.2<-as.character(data.set2.sample.info[which(data.set2.sample.info[,13]=="cancer"),c(1:12,13)][,1])
+  cel.file.cancer.data.set2.2.2<-cel.file.cancer.data.set2.2[-which(cel.file.cancer.data.set2.2=="")]
 
-data.set2.cancer.GSM.cel.mapping<-data.set2.sample.info[which(data.set2.sample.info[,13]=="cancer"),c(1:12,13)]
-data.set2.cancer.GSM.cel.mapping.2<-data.set2.cancer.GSM.cel.mapping[,c(1,8)]
-data.set2.cancer.GSM.cel.mapping.3<-data.set2.cancer.GSM.cel.mapping.2[which(as.character(data.set2.cancer.GSM.cel.mapping.2[,1])!=""),]
+  data.set2.cancer.GSM.cel.mapping<-data.set2.sample.info[which(data.set2.sample.info[,13]=="cancer"),c(1:12,13)]
+  data.set2.cancer.GSM.cel.mapping.2<-data.set2.cancer.GSM.cel.mapping[,c(1,8)]
+  data.set2.cancer.GSM.cel.mapping.3<-data.set2.cancer.GSM.cel.mapping.2[which(as.character(data.set2.cancer.GSM.cel.mapping.2[,1])!=""),]
 
-data.set2.cancer.GSM.cel.mapping.3.2<-gsub(".cel","",as.character(data.set2.cancer.GSM.cel.mapping.3[,2]))
-data.set2.cancer.GSM.cel.mapping.3.2.2<-gsub(".CEL","",as.character(data.set2.cancer.GSM.cel.mapping.3.2))
-data.set2.cancer.GSM.cel.mapping.3.2.2.2<-gsub("-","_",as.character(data.set2.cancer.GSM.cel.mapping.3.2.2))
-data.set2.cancer.GSM.cel.mapping.4<-cbind(data.set2.cancer.GSM.cel.mapping.3,sapply(strsplit(data.set2.cancer.GSM.cel.mapping.3.2.2.2,"_"),"[[",1))
+  data.set2.cancer.GSM.cel.mapping.3.2<-gsub(".cel","",as.character(data.set2.cancer.GSM.cel.mapping.3[,2]))
+  data.set2.cancer.GSM.cel.mapping.3.2.2<-gsub(".CEL","",as.character(data.set2.cancer.GSM.cel.mapping.3.2))
+  data.set2.cancer.GSM.cel.mapping.3.2.2.2<-gsub("-","_",as.character(data.set2.cancer.GSM.cel.mapping.3.2.2))
+  data.set2.cancer.GSM.cel.mapping.4<-cbind(data.set2.cancer.GSM.cel.mapping.3,sapply(strsplit(data.set2.cancer.GSM.cel.mapping.3.2.2.2,"_"),"[[",1))
 
-cel.file.cancer.data.set1<-as.character(data.set1.sample.info[which(data.set1.sample.info[,4]=="cancer"),2])
+  cel.file.cancer.data.set1<-as.character(data.set1.sample.info[which(data.set1.sample.info[,4]=="cancer"),2])
 
-cel.file.cancer.set1.set2<-rbind(cbind(cel.file.cancer.data.set1,rep(1,length(cel.file.cancer.data.set1))),
-cbind(cel.file.cancer.data.set2,rep(2,length(cel.file.cancer.data.set2))),
-cbind(cel.file.cancer.data.set2.2.2,rep(2,length(cel.file.cancer.data.set2.2.2))))
+  cel.file.cancer.set1.set2<-rbind(cbind(cel.file.cancer.data.set1,rep(1,length(cel.file.cancer.data.set1))),
+  cbind(cel.file.cancer.data.set2,rep(2,length(cel.file.cancer.data.set2))),
+  cbind(cel.file.cancer.data.set2.2.2,rep(2,length(cel.file.cancer.data.set2.2.2))))
 
-cel.file.cancer.set1.set2.set3<-rbind(cel.file.cancer.set1.set2,cel.file.all.2[which(cel.file.all.2[,2]==3),])
+  cel.file.cancer.set1.set2.set3<-rbind(cel.file.cancer.set1.set2,cel.file.all.2[which(cel.file.all.2[,2]==3),])
 
-cel.file.cancer.set1.set2.set3.name<-gsub(".CEL","",cel.file.cancer.set1.set2.set3[,1])
-cel.file.cancer.set1.set2.set3.name.1<-gsub(".cel","",cel.file.cancer.set1.set2.set3.name)
-cel.file.cancer.set1.set2.set3.name.2<-gsub("-","_",cel.file.cancer.set1.set2.set3.name.1)
+  cel.file.cancer.set1.set2.set3.name<-gsub(".CEL","",cel.file.cancer.set1.set2.set3[,1])
+  cel.file.cancer.set1.set2.set3.name.1<-gsub(".cel","",cel.file.cancer.set1.set2.set3.name)
+  cel.file.cancer.set1.set2.set3.name.2<-gsub("-","_",cel.file.cancer.set1.set2.set3.name.1)
 
-data.set123.normalized<-cbind(data.set1.normalized,data.set2.normalized,data.set3.normalized)
-dim(data.set123.normalized)
-dim(data.set123.normalized[,which(colnames(data.set123.normalized) %in% cel.file.cancer.set1.set2.set3[,1])])
-colnames(data.set123.normalized)[grep(54,colnames(data.set123.normalized))]
+  data.set123.normalized<-cbind(data.set1.normalized,data.set2.normalized,data.set3.normalized)
+  dim(data.set123.normalized)
+  dim(data.set123.normalized[,which(colnames(data.set123.normalized) %in% cel.file.cancer.set1.set2.set3[,1])])
+  colnames(data.set123.normalized)[grep(54,colnames(data.set123.normalized))]
 
-original.cel.file.names<-colnames(data.set123.normalized)
-original.cel.file.names.1<-gsub("X","",original.cel.file.names)
-original.cel.file.names.2<-gsub(".CEL","",original.cel.file.names.1)
-original.cel.file.names.3<-gsub(".cel","",original.cel.file.names.2)
-original.cel.file.names.4<-gsub("\\.","_",original.cel.file.names.3)
+  original.cel.file.names<-colnames(data.set123.normalized)
+  original.cel.file.names.1<-gsub("X","",original.cel.file.names)
+  original.cel.file.names.2<-gsub(".CEL","",original.cel.file.names.1)
+  original.cel.file.names.3<-gsub(".cel","",original.cel.file.names.2)
+  original.cel.file.names.4<-gsub("\\.","_",original.cel.file.names.3)
 
-index.4.cancer.sample<-which(original.cel.file.names.4 %in% cel.file.cancer.set1.set2.set3.name.2)
-original.cel.file.name.with.mapped.names<-cbind(original.cel.file.names[index.4.cancer.sample],original.cel.file.names.4[index.4.cancer.sample])
-#index.4.no.cancer.sample.1<-cbind(original.cel.file.names[-index.4.cancer.sample],original.cel.file.names.4[-index.4.cancer.sample])
-setdiff(cel.file.cancer.set1.set2.set3.name.2,original.cel.file.names.4[index.4.cancer.sample])
-which(original.cel.file.names.4[-index.4.cancer.sample] %in% cel.file.cancer.set1.set2.set3.name.2)
+  index.4.cancer.sample<-which(original.cel.file.names.4 %in% cel.file.cancer.set1.set2.set3.name.2)
+  original.cel.file.name.with.mapped.names<-cbind(original.cel.file.names[index.4.cancer.sample],original.cel.file.names.4[index.4.cancer.sample])
+  #index.4.no.cancer.sample.1<-cbind(original.cel.file.names[-index.4.cancer.sample],original.cel.file.names.4[-index.4.cancer.sample])
+  setdiff(cel.file.cancer.set1.set2.set3.name.2,original.cel.file.names.4[index.4.cancer.sample])
+  which(original.cel.file.names.4[-index.4.cancer.sample] %in% cel.file.cancer.set1.set2.set3.name.2)
 
-cancer.data.set123.normalized<-data.set123.normalized[,index.4.cancer.sample]
-dim(cancer.data.set123.normalized)
+  cancer.data.set123.normalized<-data.set123.normalized[,index.4.cancer.sample]
+  dim(cancer.data.set123.normalized)
 
-cancer.cel.file.name.72<-colnames(cancer.data.set123.normalized)
-cancer.cel.file.name.72.1<-gsub("X","",cancer.cel.file.name.72)
-cancer.cel.file.name.72.2<-gsub(".CEL","",cancer.cel.file.name.72.1)
-cancer.cel.file.name.72.3<-gsub(".cel","",cancer.cel.file.name.72.2)
-cancer.cel.file.name.72.4<-gsub("\\.","_",cancer.cel.file.name.72.3)
-cancer.cel.file.name.72.5<-cancer.cel.file.name.72.4
+  cancer.cel.file.name.72<-colnames(cancer.data.set123.normalized)
+  cancer.cel.file.name.72.1<-gsub("X","",cancer.cel.file.name.72)
+  cancer.cel.file.name.72.2<-gsub(".CEL","",cancer.cel.file.name.72.1)
+  cancer.cel.file.name.72.3<-gsub(".cel","",cancer.cel.file.name.72.2)
+  cancer.cel.file.name.72.4<-gsub("\\.","_",cancer.cel.file.name.72.3)
+  cancer.cel.file.name.72.5<-cancer.cel.file.name.72.4
 
-data.set2.cancer.GSM.cel.mapping.44<-as.character(data.set2.cancer.GSM.cel.mapping.4[which(data.set2.cancer.GSM.cel.mapping.4[,1] %in% cancer.cel.file.name.72.4),3])
-cancer.cel.file.name.72.5[which(cancer.cel.file.name.72.5 %in% data.set2.cancer.GSM.cel.mapping.4[,1])]<-data.set2.cancer.GSM.cel.mapping.44
-cancer.cel.file.name.72.6<-cbind(cancer.cel.file.name.72,cancer.cel.file.name.72.5)
-cancer.cel.file.name.72.7<-c(sapply(strsplit(cancer.cel.file.name.72.6[1:29,2],"_"),"[[",1),
-sapply(strsplit(cancer.cel.file.name.72.6[30:72,2],"_"),"[[",4))
-cancer.cel.file.name.72.8<-cbind(cancer.cel.file.name.72.6,cancer.cel.file.name.72.7)
+  data.set2.cancer.GSM.cel.mapping.44<-as.character(data.set2.cancer.GSM.cel.mapping.4[which(data.set2.cancer.GSM.cel.mapping.4[,1] %in% cancer.cel.file.name.72.4),3])
+  cancer.cel.file.name.72.5[which(cancer.cel.file.name.72.5 %in% data.set2.cancer.GSM.cel.mapping.4[,1])]<-data.set2.cancer.GSM.cel.mapping.44
+  cancer.cel.file.name.72.6<-cbind(cancer.cel.file.name.72,cancer.cel.file.name.72.5)
+  cancer.cel.file.name.72.7<-c(sapply(strsplit(cancer.cel.file.name.72.6[1:29,2],"_"),"[[",1),
+  sapply(strsplit(cancer.cel.file.name.72.6[30:72,2],"_"),"[[",4))
+  cancer.cel.file.name.72.8<-cbind(cancer.cel.file.name.72.6,cancer.cel.file.name.72.7)
+}
 
-#Classify cancer patients to 4 subtypes
+parser5 <- function() {
+  #Classify cancer patients to 4 subtypes
 
-subtype.1<-as.character(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==1),1])
-subtype.2<-as.character(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==2),1])
-subtype.3<-as.character(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==3),1])
-subtype.4<-as.character(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==4),1])
+  subtype.1<-as.character(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==1),1])
+  subtype.2<-as.character(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==2),1])
+  subtype.3<-as.character(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==3),1])
+  subtype.4<-as.character(data.ER.PR.sample.info[which(data.ER.PR.sample.info[,4]==4),1])
 
-cancer.data.set123.normalized.st1<-cancer.data.set123.normalized[,which(cancer.cel.file.name.72.8[,3] %in% subtype.1)]
-cancer.data.set123.normalized.st2<-as.data.frame(cancer.data.set123.normalized[,which(cancer.cel.file.name.72.8[,3] %in% subtype.2)])
-colnames(cancer.data.set123.normalized.st2)<-colnames(cancer.data.set123.normalized)[which(cancer.cel.file.name.72.8[,3] %in% subtype.2)]
-cancer.data.set123.normalized.st3<-cancer.data.set123.normalized[,which(cancer.cel.file.name.72.8[,3] %in% subtype.3)]
-cancer.data.set123.normalized.st4<-cancer.data.set123.normalized[,which(cancer.cel.file.name.72.8[,3] %in% subtype.4)]
+  cancer.data.set123.normalized.st1<-cancer.data.set123.normalized[,which(cancer.cel.file.name.72.8[,3] %in% subtype.1)]
+  cancer.data.set123.normalized.st2<-as.data.frame(cancer.data.set123.normalized[,which(cancer.cel.file.name.72.8[,3] %in% subtype.2)])
+  colnames(cancer.data.set123.normalized.st2)<-colnames(cancer.data.set123.normalized)[which(cancer.cel.file.name.72.8[,3] %in% subtype.2)]
+  cancer.data.set123.normalized.st3<-cancer.data.set123.normalized[,which(cancer.cel.file.name.72.8[,3] %in% subtype.3)]
+  cancer.data.set123.normalized.st4<-cancer.data.set123.normalized[,which(cancer.cel.file.name.72.8[,3] %in% subtype.4)]
 
-dim(cancer.data.set123.normalized.st1)
-dim(cancer.data.set123.normalized.st2)
-dim(cancer.data.set123.normalized.st3)
-dim(cancer.data.set123.normalized.st4)
+  dim(cancer.data.set123.normalized.st1)
+  dim(cancer.data.set123.normalized.st2)
+  dim(cancer.data.set123.normalized.st3)
+  dim(cancer.data.set123.normalized.st4)
 
-head(cancer.data.set123.normalized.st1)
-head(cancer.data.set123.normalized.st2)
-head(cancer.data.set123.normalized.st3)
-head(cancer.data.set123.normalized.st4)
+  head(cancer.data.set123.normalized.st1)
+  head(cancer.data.set123.normalized.st2)
+  head(cancer.data.set123.normalized.st3)
+  head(cancer.data.set123.normalized.st4)
 
-colnames(cancer.data.set123.normalized.st1)
-colnames(cancer.data.set123.normalized.st2)
-colnames(cancer.data.set123.normalized.st3)
-colnames(cancer.data.set123.normalized.st4)
+  colnames(cancer.data.set123.normalized.st1)
+  colnames(cancer.data.set123.normalized.st2)
+  colnames(cancer.data.set123.normalized.st3)
+  colnames(cancer.data.set123.normalized.st4)
+}
 
-#n.st<-length(colnames(cancer.data.set123.normalized.st1))
+parser6 <- function(cancer.data.set123.normalized.st1, cancer.data.set123.normalized.st3, cancer.data.set123.normalized.st4, TopTableSt34.54675, ed.normalized.set1, ed.normalized.set2, ed.normalized.set3) {
+  #n.st<-length(colnames(cancer.data.set123.normalized.st1))
 
-# #Use subtype1,2,3,4
-# cel.file.sample.infor<-as.data.frame(rbind(
-# cbind(colnames(cancer.data.set123.normalized.st1),rep("st1",length(colnames(cancer.data.set123.normalized.st1)))),
-# cbind(colnames(cancer.data.set123.normalized.st2),rep("st2",length(colnames(cancer.data.set123.normalized.st2)))),
-# cbind(colnames(cancer.data.set123.normalized.st3),rep("st3",length(colnames(cancer.data.set123.normalized.st3)))),
-# cbind(colnames(cancer.data.set123.normalized.st4),rep("st4",length(colnames(cancer.data.set123.normalized.st4))))
-# ))
-# colnames(cel.file.sample.infor)=c("filename","subtype")
+  # #Use subtype1,2,3,4
+  # cel.file.sample.infor<-as.data.frame(rbind(
+  # cbind(colnames(cancer.data.set123.normalized.st1),rep("st1",length(colnames(cancer.data.set123.normalized.st1)))),
+  # cbind(colnames(cancer.data.set123.normalized.st2),rep("st2",length(colnames(cancer.data.set123.normalized.st2)))),
+  # cbind(colnames(cancer.data.set123.normalized.st3),rep("st3",length(colnames(cancer.data.set123.normalized.st3)))),
+  # cbind(colnames(cancer.data.set123.normalized.st4),rep("st4",length(colnames(cancer.data.set123.normalized.st4))))
+  # ))
+  # colnames(cel.file.sample.infor)=c("filename","subtype")
 
-#Use subtype 1,3,4
-cel.file.sample.infor.no.2<-as.data.frame(rbind(
-  cbind(colnames(cancer.data.set123.normalized.st1),rep("st1",length(colnames(cancer.data.set123.normalized.st1)))),
-  cbind(colnames(cancer.data.set123.normalized.st3),rep("st3",length(colnames(cancer.data.set123.normalized.st3)))),
-  cbind(colnames(cancer.data.set123.normalized.st4),rep("st4",length(colnames(cancer.data.set123.normalized.st4))))
-))
+  #Use subtype 1,3,4
+  cel.file.sample.infor.no.2<-as.data.frame(rbind(
+    cbind(colnames(cancer.data.set123.normalized.st1),rep("st1",length(colnames(cancer.data.set123.normalized.st1)))),
+    cbind(colnames(cancer.data.set123.normalized.st3),rep("st3",length(colnames(cancer.data.set123.normalized.st3)))),
+    cbind(colnames(cancer.data.set123.normalized.st4),rep("st4",length(colnames(cancer.data.set123.normalized.st4))))
+  ))
 
-colnames(cel.file.sample.infor.no.2)=c("filename","subtype")
-f.st134 <- factor(cel.file.sample.infor.no.2$subtype)
-design.st134 <- model.matrix(~0+f.st134)
-colnames(design.st134) <- levels(f.st134)
+  colnames(cel.file.sample.infor.no.2)=c("filename","subtype")
+  f.st134 <- factor(cel.file.sample.infor.no.2$subtype)
+  design.st134 <- model.matrix(~0+f.st134)
+  colnames(design.st134) <- levels(f.st134)
 
-cancer.data.st134<-cbind(cancer.data.set123.normalized.st1,
-cancer.data.set123.normalized.st3,
-cancer.data.set123.normalized.st4)
-head(cancer.data.st134)
+  cancer.data.st134<-cbind(cancer.data.set123.normalized.st1,
+  cancer.data.set123.normalized.st3,
+  cancer.data.set123.normalized.st4)
+  head(cancer.data.st134)
 
-fit.st134 <- lmFit(cancer.data.st134, design.st134)
+  fit.st134 <- lmFit(cancer.data.st134, design.st134)
 
-cont.matrix.st134 <- makeContrasts(st34="st3-st4",st41="st4-st1",levels=design.st134)
-fit2.st134  <- contrasts.fit(fit.st134, cont.matrix.st134)
-fit2.st134  <- eBayes(fit2.st134)
+  cont.matrix.st134 <- makeContrasts(st34="st3-st4",st41="st4-st1",levels=design.st134)
+  fit2.st134  <- contrasts.fit(fit.st134, cont.matrix.st134)
+  fit2.st134  <- eBayes(fit2.st134)
 
-str(fit2.st134)
+  str(fit2.st134)
 
-TopTableSt34.all<-topTable(fit2.st134,coef=1,n=54674)
+  TopTableSt34.all<-topTable(fit2.st134,coef=1,n=54674)
 
-TopTableSt34.100<-topTable(fit2.st134,coef=1,adjust="fdr",n=100)
+  TopTableSt34.100<-topTable(fit2.st134,coef=1,adjust="fdr",n=100)
 
-genenames <- as.character(rownames(TopTableSt34.54675))
+  genenames <- as.character(rownames(TopTableSt34.54675))
 
-length(genenames)
+  length(genenames)
 
-genenames
+  genenames
 
-annotation(ed.normalized.set1)
-annotation(ed.normalized.set2)
-annotation(ed.normalized.set3)
+  annotation(ed.normalized.set1)
+  annotation(ed.normalized.set2)
+  annotation(ed.normalized.set3)
+}
 library("hgu133plus2.db")
 
 map <- getpAnnMa("ENTREZID", "hgu133plus2", load=TRUE, type=c("env", "db"))
@@ -1317,49 +1190,10 @@ cel.file.name.key.set.symbol.subtype<-rbind(cancer.data.set123.st1.subtype,cance
 #Use subtype 1,3,4
 cel.file.name.key.set.symbol.st134<-cel.file.name.key.set.symbol.subtype[which(cel.file.name.key.set.symbol.subtype[,5]!="st2"),]
 
-#Use frma method to do normalization
-setwd("/media/H_driver/2015/Sophia/Cel_file_frma/")
-data.set123.raw <- ReadAffy()
-data.set123.frma<-frma(data.set123.raw)
-ed.set123.frma <- exprs(data.set123.frma)
-samp.frma <- sampleNames(data.set123.frma)
-probes.frma <- featureNames(data.set123.frma)
 
-samp.frma.1<-gsub(" - ","_",samp.frma)
-samp.frma.2<-gsub(".CEL","",samp.frma.1)
-samp.frma.3<-gsub(".cel","",samp.frma.2)
-samp.frma.4<-gsub("-","_",samp.frma.3)
-samp.frma.5<-cbind(samp.frma,samp.frma.4)
-samp.frma.cancer.index<-which(samp.frma.5[,2] %in% cel.file.name.key.set.symbol.st134[,1])
 
-samp.frma.6<-samp.frma.5[samp.frma.cancer.index,]
 
-data.set123.frma.cancer<-data.set123.frma[,samp.frma.cancer.index]
-ed.set123.frma.cancer<-ed.set123.frma[,samp.frma.cancer.index]
 
-samp.frma.7<-cbind(samp.frma.6,colnames(ed.set123.frma.cancer))
-samp.frma.8<-samp.frma.7[,2:3]
-colnames(samp.frma.8)<-c("key","filename_frma")
-
-cel.file.sample.infor.no.8<-merge(cel.file.name.key.set.symbol.st134,samp.frma.8,by="key",sort=FALSE)
-
-GeneSym.all <- getSYMBOL(rownames(ed.set123.frma.cancer), "hgu133plus2.db")
-ndata<-ed.set123.frma.cancer
-geneSymbol=GeneSym.all
-tempdata.byGSym = data.frame(ndata, Symbol = geneSymbol)
-tempdata.byGSym.2<-tempdata.byGSym[-which(is.na(tempdata.byGSym$Symbol)),]
-rownames(tempdata.byGSym.2) = NULL
-data.byGSym = ddply(tempdata.byGSym.2, c("Symbol"),function(h)
-  summary = apply(h,2,max)
-)
-
-rownames(data.byGSym)=data.byGSym$Symbol
-data.byGSym.2<-data.byGSym[,-dim(data.byGSym)[2]]
-temp = apply(data.byGSym.2,2,as.numeric)
-rownames(temp) = rownames(data.byGSym.2)
-data.byGSym.2 = temp
-SampleType<-cel.file.sample.infor.no.8$subtype
-heatmap_wPCA(data.byGSym.2, "heatmap_allsample_frma_2.pdf","PCA_allsample_frma_2.pdf","/media/H_driver/2015/Sophia/Results/", SampleType)
 
 f.st134.frma <- factor(cel.file.sample.infor.no.8$subtype)
 design.st134.frma <- model.matrix(~0+f.st134.frma)
